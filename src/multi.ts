@@ -1,55 +1,59 @@
-import autoComplete from './index'
+import { StiAutoComplete } from './index'
 import getParents from './helpers/getParents'
-import 'styles/multi-autocomplete.scss'
+import Feedback from '../types/feedback'
+
+interface MultiAutoCompleteOptions {
+  elemento: HTMLInputElement,
+  src: () => Promise<any> | any,
+  keys: string[],
+  cache?: boolean,
+  output?: HTMLElement,
+  resultTemplate?: (feedback: Feedback) => string,
+  outputTemplate: (feedback: Feedback) => string,
+  wrapperTemplate?: (content: string) => string,
+  onAdd?: () => void,
+  onRemove?: () => void
+}
 
 /**
  * transforma o input em um autocomplete com opções carregadas localmente ou por ajax
  * adiciona templates com os resultados em um output container
- * @param {{
- *   elemento: HTMLElement,
- *   src: Function,
- *   key: Array<string>,
- *   cache: boolean?,
- *   output: HTMLElement?,
- *   resultTemplate: Function?,
- *   outputTemplate: Function,
- *   wrapperTemplate: Function?,
- *   onAdd: Function?,
- *   onRemove: Function?
- * }} opcoes opções do autocomplete
- * @returns {AutoComplete} autocomplete
  */
-export default function multiAutoComplete(opcoes) {
+export default function multiAutoComplete(opcoes: MultiAutoCompleteOptions) {
   const output = opcoes.output || encontraOutput(opcoes.elemento)
 
   opcoes = { ...opcoesPadrao(opcoes.elemento, output, opcoes), ...opcoes }
 
   habilitaBotoes(output, opcoes)
-  return autoComplete(opcoes)
+  return new StiAutoComplete(opcoes)
 }
 
-function encontraOutput(elemento) {
-  let output = elemento.parentNode.querySelector('.output:not([data-used])')
+function encontraOutput(elemento: HTMLInputElement) {
+  if (!elemento.parentElement) throw new Error('Elemento não possui pai')
+  let output: HTMLElement | null = elemento.parentElement.querySelector('.output:not([data-used])')
   if (!output || output.dataset.used) output = criaOutput(elemento)
-  output.dataset.used = true
+  output.dataset.used = 'true'
   return output
 }
 
-function criaOutput(elemento) {
+function criaOutput(elemento: HTMLInputElement) {
   const output = document.createElement('ul')
   output.classList.add('output')
   elemento.insertAdjacentElement('afterend', output)
   return output
 }
 
-function habilitaBotoes(output, opcoes) {
+function habilitaBotoes(output:HTMLElement, opcoes: MultiAutoCompleteOptions) {
   output.addEventListener('click', event => {
-    if (event.target.tagName === 'BUTTON') {
-      const outputItem = getParents(event.target, '.output-item')[0]
-      const destroy = outputItem.querySelector('[name*="_destroy"]')
+    const target: any = event.target
+    if (!target) throw new Error('Evento de clique não possui target')
+
+    if (target.tagName === 'BUTTON') {
+      const outputItem = getParents(target, '.output-item')[0]
+      const destroy: HTMLInputElement | null = outputItem.querySelector('[name*="_destroy"]')
 
       if (destroy) {
-        destroy.value = 1
+        destroy.value = '1'
         outputItem.hidden = true
       } else {
         outputItem.remove()
@@ -59,11 +63,11 @@ function habilitaBotoes(output, opcoes) {
   })
 }
 
-function opcoesPadrao(elemento, output, opcoes) {
+function opcoesPadrao(elemento: HTMLInputElement, output: HTMLElement, opcoes: MultiAutoCompleteOptions) {
   const wrapperTemplate = opcoes.wrapperTemplate || defaultWrapperTemplate
   return {
     wrapperTemplate,
-    onChange: feedback => {
+    onChange: (feedback: Feedback) => {
       output.insertAdjacentHTML('beforeend', wrapperTemplate(opcoes.outputTemplate(feedback)))
       opcoes.onAdd && opcoes.onAdd()
       elemento.value = ''
@@ -72,7 +76,7 @@ function opcoesPadrao(elemento, output, opcoes) {
   }
 }
 
-function defaultWrapperTemplate(content) {
+function defaultWrapperTemplate(content: string) {
   return `
     <li class="output-item">
       <span>${content}</span>
