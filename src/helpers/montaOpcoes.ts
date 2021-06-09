@@ -12,13 +12,13 @@ export default function montaOpcoes(opcoes: ApiOptions, hiddenInput?: HTMLInputE
     },
     selector: () => opcoes.elemento,
     debounce: 700,
-    threshold: opcoes.threshold,
-    placeHolder: opcoes.placeHolder,
+    threshold: opcoes.threshold || 1,
     resultsList: {
       render: true,
       maxResults: 10,
       destination: () => opcoes.elemento,
-      noResults: noResults(opcoes, hiddenInput),
+      noResults: true,
+      element: noResults(opcoes, hiddenInput),
     },
     resultItem: resultItem(opcoes)
   }
@@ -28,29 +28,26 @@ function noResults(opcoes: ApiOptions, hiddenInput?: HTMLInputElement) {
   const randomId = generateRandomId()
   const onOther = opcoes.onOther
 
-  return ({ query }: Feedback) => {
-    const noResult = `
-      <ul class="autoComplete_list" role="listbox" aria-label="Search" tabindex="-1">
-        ${opcoes.onOther ? `
-          <li class="autoComplete_result" role="option" id="${randomId}">
-            ${query.toUpperCase()}
-          </li>
-          ` : `
-          <li class="no_results" id="${randomId}">
-            Nenhum resultado encontrado para ${query}
-          </li>
-        `}
-      </ul>
-    `
+  return (list: HTMLUListElement, feedback: any) => {
+    if (feedback.matches.length) return
 
-    opcoes.elemento.insertAdjacentHTML('afterend', noResult)
+    list.insertAdjacentHTML('afterbegin', 
+      onOther ? `
+        <li class="autoComplete_result" role="option" id="${randomId}">
+          ${feedback.query.toUpperCase()}
+        </li>
+      ` : `
+      <li class="autoComplete_no_results">
+        Nenhum resultado encontrado para ${feedback.query}
+      </li>
+    `)
 
     if (!onOther) return
 
     const noResultElement = document.getElementById(randomId)
     if (!noResultElement) throw new Error('Não foi possível encontrar "no_results"')
     noResultElement.onclick = () => {
-      opcoes.elemento.value = query.toUpperCase()
+      opcoes.elemento.value = feedback.query.toUpperCase()
       onOther(hiddenInput)
     }
   }

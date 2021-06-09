@@ -1,4 +1,4 @@
-import { StiAutoComplete } from './index'
+import StiAutoComplete from './autocomplete'
 import getParents from './helpers/getParents'
 import Feedback from '../types/feedback'
 

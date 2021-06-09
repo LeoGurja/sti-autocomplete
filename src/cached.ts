@@ -1,5 +1,5 @@
-import axios from './axios'
-import { StiAutoComplete } from './index'
+import axios from './client'
+import StiAutoComplete from './autocomplete'
 import Feedback from '../types/feedback'
 
 interface CachedAutoCompleteOptions {

@@ -16,16 +16,14 @@ declare module '@tarekraafat/autocomplete.js' {
       keys: string[],
       cache?: boolean
     },
-    placeHolder?: string,
     threshold?: number,
     debounce?: number,
-    searchEngine?: string | ((query, record) => 'strict' | 'loose'),
     resultsList?: {
       render?: boolean,
-      element?: string,
       destination?: string | (() => HTMLInputElement),
       maxResults?: number,
-      noResults?: (feedback: Feedback) => void
+      noResults?: boolean,
+      element?: (list: HTMLUListElement, feedback: Feedback) => void
     },
     resultItem?: {
       highlight: boolean,

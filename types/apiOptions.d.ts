@@ -7,7 +7,6 @@ export default interface ApiOptions {
   hiddenInput?: string,
   resultTemplate?: (result: any) => string,
   selectedTemplate?: (feedback: Feedback) => string
-  placeHolder?: string,
   cache?: boolean,
   threshold?: number,
   onChange?: (feedback: Feedback) => void,
